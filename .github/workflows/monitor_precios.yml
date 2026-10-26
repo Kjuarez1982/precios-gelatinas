@@ -1,0 +1,35 @@
+name: Tarea Diaria de Precios
+
+on:
+  schedule:
+    # 12:00 UTC equivale a las 6:00 AM hora de Guatemala
+    - cron: '0 12 * * *'
+  workflow_dispatch: # Permite encenderlo manualmente con un botón
+
+jobs:
+  descargar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el proyecto
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar navegador invisible
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Ejecutar el robot
+        run: python agent_gelatinas.py
+
+      - name: Guardar los datos actualizados
+        run: |
+          git config --global user.name "Robot Precios"
+          git config --global user.email "bot@ejemplo.com"
+          git add historico_gelatinas.csv || true
+          git commit -m "Actualización de precios" || echo "Sin cambios"
+          git push
